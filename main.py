@@ -29,13 +29,12 @@ def claim_fragment(receiver_address: str, private_key: str):
     txn = contract.functions.mint("cbt").build_transaction(
         {
             "chainId": web3.eth.chain_id,
-            "gas": 2000000,
+            "gas": 127610,
             "gasPrice": gas_price,
             "nonce": nonce,
             "from": receiver_address,
         }
     )
-
     signed_txn = web3.eth.account.sign_transaction(txn, private_key=private_key)
     tx_hash = web3.eth.send_raw_transaction(signed_txn.rawTransaction)
     web3.eth.wait_for_transaction_receipt(tx_hash)
@@ -47,21 +46,24 @@ with open("data.txt", "r") as file:
     lines = file.readlines()
 table.field_names = ["Wallet address", "Ronin balance", "Fragment balance"]
 for i in lines:
-    claim_fragment(i.split(",")[0].strip(), i.split(",")[1].strip())
-    table.add_row(
-        [
-            i.split(",")[0].strip(),
-            web3.from_wei(
-                web3.eth.get_balance(web3.to_checksum_address(i.split(",")[0].strip())),
-                "ether",
-            ),
-            nft_contract.functions.balanceOf(
-                web3.to_checksum_address(i.split(",")[0].strip()), 268650256
-            ).call(),
-        ]
-    )
+    try:
+        claim_fragment(i.split(",")[0].strip(), i.split(",")[1].strip())
+        table.add_row(
+            [
+                i.split(",")[0].strip(),
+                web3.from_wei(
+                    web3.eth.get_balance(web3.to_checksum_address(i.split(",")[0].strip())),
+                    "ether",
+                ),
+                nft_contract.functions.balanceOf(
+                    web3.to_checksum_address(i.split(",")[0].strip()), 268650256
+                ).call(),
+            ]
+        )
+        print(f"{i.split(',')[0].strip()} has done")
+    except Exception as e:
+        print(f"{i.split(',')[0].strip()} error {e}")
     sleep_time = random.randint(1, 100)
-    print(f"{i.split(',')[0].strip()} has done")
     print(f"Sleep for {sleep_time}")
     time.sleep(sleep_time)
 
